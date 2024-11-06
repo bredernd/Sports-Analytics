@@ -1,0 +1,22 @@
+package com.cps298.nba.service;
+
+import java.time.LocalDate;
+import java.time.YearMonth;
+
+import org.springframework.stereotype.Service;
+
+@Service
+public class CalendarService {
+
+    public String generateCalendarHtml(int year, int month) {
+        StringBuilder calendarHtml = new StringBuilder();
+        YearMonth yearMonth = YearMonth.of(year, month);
+        
+        for (int day = 1; day <= yearMonth.lengthOfMonth(); day++) {
+            calendarHtml.append("<div class='day'>").append(day).append("</div>");
+        }
+        
+        return calendarHtml.toString();
+    }
+	
+}
