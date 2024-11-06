@@ -1,0 +1,57 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Calendar</title>
+
+<style>
+
+
+	.container {
+	display: flex;
+    justify-content: center;
+    align-items: center;
+	}
+	
+	.calendar { 
+	display: grid; 
+	grid-template-columns: repeat(7, 1fr); 
+	gap: 10px; 
+	width: fit-content; 
+	height: fit-content;
+	}
+	
+    .day { 
+    border: 1px solid #ddd; 
+    padding: 10px;
+    width: 130px;
+    height: 92px; 
+    }
+    
+    .calTitle{
+    align-text: center;
+    font-size: 50px;
+    width: 1500px%;
+    height: fit-content;
+    }
+</style>
+</head>
+<body>
+
+
+EACH CARD WILL HAVE THREE BUTTONS: THIRD BUTTON IS OPTIONAL
+WE WILL PURSUE DEVELOPING THRID BUTTON ONLY WHEN WE HAVE TIME
+GAME FACTS, PREDICTIONS, AND (LIVE SOCORE, OR SITE TO VIEW GAME)<br>
+
+	<label for="calCont" class="calTitle">${month} ${year}</label>
+	<div class="container" value="calCont">
+    	<div class="calendar">
+        	${calendarHtml}
+    	</div>
+    </div>
+
+
+</body>
+</html>
