@@ -1,6 +1,0 @@
-package com.cps298.nba.controller;
-
-@Controller
-public class MainController {
-
-}
