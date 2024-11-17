@@ -1,16 +1,25 @@
 package com.cps298.nba.main_entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class TeamRankings {
 
-	private String teamId;
+	@Id
+	@ManyToOne
+	@JoinColumn(name="teamId")
+	private Teams teamId;
 	private String conference;
 	private String division;
 	private int conferenceRank;
 	private int divisionRank;
-	public String getTeamId() {
+	public Teams getTeamId() {
 		return teamId;
 	}
-	public void setTeamId(String teamId) {
+	public void setTeamId(Teams teamId) {
 		this.teamId = teamId;
 	}
 	public String getConference() {

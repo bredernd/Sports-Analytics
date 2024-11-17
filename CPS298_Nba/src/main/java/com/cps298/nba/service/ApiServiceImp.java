@@ -3,8 +3,10 @@ package com.cps298.nba.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -21,6 +23,9 @@ import com.cps298.nba.main_entity.Teams;
 
 @Service
 public class ApiServiceImp implements ApiService {
+	
+	@Autowired
+	DaoService service;
 
     private RestTemplate restTemplate = new RestTemplate();
     private List<Teams> teamData = new ArrayList<>();
@@ -34,7 +39,7 @@ public class ApiServiceImp implements ApiService {
     
     
     // API CALL TO FETCH TEAM DATA AND RANKS AS WELL
-    public  List<TeamPlayers> fetchRanking() throws InterruptedException {
+    public  List<TeamRankings> fetchRanking() throws InterruptedException {
     	 String url = "https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/rankings.json?api_key=";
          String apiKey = "quoLOuR9M3y7o6xB0b4YHMSEU1zkxYyP1KCDyCqJ";
          String uri = url + apiKey;
@@ -43,21 +48,45 @@ public class ApiServiceImp implements ApiService {
          System.out.println(response);
          
          teamData =  fetchTeams(response);
-         //rankings = fetchTeamRankings(response);
+         System.out.println(service);
+         //service.saveTeams(teamData);
          
-         for(Teams team : teamData) {
-        	 System.out.println(team);
-        	// System.out.println(fetchTeamStat(team.getTeamId()));
-        	 fetchPlayers(team.getTeamId());
-        	 Thread.sleep(5000);
-         }
-         return teamPlayers;
+         
+         //rankings = fetchTeamRankings(response);
+         //service.saveTeamRankings(rankings);
+         
+         
+       //  fetchPlayers(teamData.get(0));
+       //  System.out.println(fetchTeamStat(teamData.get(0)));
+         
+         
+         
+//         for(Teams team : teamData) {
+//        	 System.out.println(team);
+//        	 fetchTeamStat(team);
+//        	 //fetchPlayers(team);
+//        	 Thread.sleep(5000);
+//        	 
+//         }
+         
+//         service.saveTeamStats(teamStats);
+         //service.saveTeamPlayers(teamPlayers);
+        // service.savePlayerStats(playerStatistics);
+         
+         gameSechdule();
+         service.saveGameSchedule(sechedule);
+         
+    	 
+    	 return null;
+      //   return teamPlayers;
     }
     
     
  // METHOD TO POPUALATE TeamRankings CLASS TO PUT IN DB  
  private List<TeamRankings> fetchTeamRankings(Rankings response) {
 	 List<TeamRankings> rankingsList = new ArrayList<>();
+	 Map<String, Teams> teamIdToTeamMap = teamData.stream()
+             .collect(Collectors.toMap(Teams::getTeamId, team -> team));
 
 	    if (response != null && response.getConferences() != null) {
 	        for (Rankings.Conference conference : response.getConferences()) {
@@ -67,7 +96,7 @@ public class ApiServiceImp implements ApiService {
 	                        for (Rankings.Team team : division.getTeams()) {
 	                            // Create a Rankings object and populate it
 	                            TeamRankings ranking = new TeamRankings();
-	                            ranking.setTeamId(team.getId());
+	                            ranking.setTeamId(teamIdToTeamMap.get(team.getId()));
 	                            ranking.setConference(conference.getName());
 	                            ranking.setDivision(division.getName());
 	                            ranking.setConferenceRank(team.getRank().getConference());
@@ -121,70 +150,82 @@ private List<Teams> fetchTeams(Rankings response) {
 	}
     
     // API CALL TO FETCH GAME SECHEDULE
-    public List<GameSechedule> gameSechdule() {
-    	String url = "https://api.sportradar.com/nba/trial/v8/en/games/2024/REG/schedule.json?api_key=";
-        String apiKey = "quoLOuR9M3y7o6xB0b4YHMSEU1zkxYyP1KCDyCqJ";
-        String uri = url + apiKey;
-        GameResponse response = restTemplate.getForObject(uri, GameResponse.class);
-        if (response != null && response.getGames() != null) {
-        	
-            // Filter games scheduled for November of this year
-            sechedule =  response.getGames().stream()
-                    .filter(game -> isInNovember(game.getScheduled()))
-                    .map(this::mapToGameSechedule)
-                    .collect(Collectors.toList());
-            
-            return sechedule;
-        }
-        return List.of();
+public List<Teams> gameSechdule() {
+    String url = "https://api.sportradar.com/nba/trial/v8/en/games/2024/REG/schedule.json?api_key=";
+    String apiKey = "quoLOuR9M3y7o6xB0b4YHMSEU1zkxYyP1KCDyCqJ";
+    String uri = url + apiKey;
+    GameResponse response = restTemplate.getForObject(uri, GameResponse.class);
+
+    if (response != null && response.getGames() != null) {
+        // Create a map for quick lookup of Teams by their IDs
+        Map<String, Teams> teamIdToTeamsMap = teamData.stream()
+                .collect(Collectors.toMap(Teams::getTeamId, team -> team));
+
+        // Filter games scheduled for November and map them to GameSechedule objects
+        sechedule = response.getGames().stream()
+                .filter(game -> isInNovember(game.getScheduled()))
+                .map(game -> mapToGameSechedule(game, teamIdToTeamsMap))
+                .collect(Collectors.toList());
+        
+        //return sechedule;
+        return teamData;
     }
+
+    return List.of();
+}
+
     
-    private GameSechedule mapToGameSechedule(GameResponse.Game game) {
-        GameSechedule gameSchedule = new GameSechedule();
+//Updated mapToGameSechedule to include Teams association
+private GameSechedule mapToGameSechedule(GameResponse.Game game, Map<String, Teams> teamIdToTeamsMap) {
+ GameSechedule gameSchedule = new GameSechedule();
 
-        gameSchedule.setStatus(game.getStatus());
-        gameSchedule.setScheduled(game.getScheduled());
-        gameSchedule.setHome_points(game.getHome_points());
-        gameSchedule.setAway_points(game.getAway_points());
-        gameSchedule.setTrack_on_court(game.getTrack_on_court());
+ gameSchedule.setStatus(game.getStatus());
+ gameSchedule.setScheduled(game.getScheduled());
+ gameSchedule.setHome_points(game.getHome_points());
+ gameSchedule.setAway_points(game.getAway_points());
+ gameSchedule.setTrack_on_court(game.getTrack_on_court());
 
-        // Map venue information
-        if (game.getVenue() != null) {
-            gameSchedule.setVenueAddress(String.format(
-                "%s, %s, %s",
-                game.getVenue().getName(),
-                game.getVenue().getCity(),
-                game.getVenue().getAddress()
-            ));
-        }
+ // Map venue information
+ if (game.getVenue() != null) {
+     gameSchedule.setVenueAddress(String.format(
+         "%s, %s, %s",
+         game.getVenue().getName(),
+         game.getVenue().getCity(),
+         game.getVenue().getAddress()
+     ));
+ }
 
-        // Map home and away team IDs
-        if (game.getHome() != null) {
-            gameSchedule.setHome_team_id(game.getHome().getId());
-        }
-        if (game.getAway() != null) {
-            gameSchedule.setAway_team_id(game.getAway().getId());
-        }
+ // Map home and away teams using the team ID map
+ if (game.getHome() != null) {
+	 Teams homeTeam = teamIdToTeamsMap.getOrDefault(game.getHome().getId(), null);
+     gameSchedule.setHome_team(homeTeam);
+     homeTeam.getHomeGames().add(gameSchedule);
+ }
+ if (game.getAway() != null) {
+	 Teams awayTeam = teamIdToTeamsMap.getOrDefault(game.getAway().getId(), null);
+     gameSchedule.setAway_team(awayTeam);
+     awayTeam.getAwayGames().add(gameSchedule);
+ }
 
-        return gameSchedule;
-    }
+ return gameSchedule;
+}
 
     
     // 	API CALL TO FETCH TEAM STATS. THIS API CALL TAKES IN TEAM-ID TO GET DATA
-    public TeamStats fetchTeamStat(String teamId){
-    	String url = "https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/teams/"+teamId+"/statistics.json?api_key=";
+    public TeamStats fetchTeamStat(Teams teamId){
+    	String url = "https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/teams/"+teamId.getTeamId()+"/statistics.json?api_key=";
         String apiKey = "quoLOuR9M3y7o6xB0b4YHMSEU1zkxYyP1KCDyCqJ";
         String uri = url + apiKey;
         TeamStatsResponse response = restTemplate.getForObject(uri, TeamStatsResponse.class);
         System.out.println("in api = "+ response.toString());
-        teamStats.add(getTeamStats(response));
+        teamStats.add(getTeamStats(response, teamId));
         return null;
     }
     
-    private TeamStats getTeamStats(TeamStatsResponse response) {
+    private TeamStats getTeamStats(TeamStatsResponse response, Teams teamId) {
         // Map data to TeamStats object
         TeamStats teamStats = new TeamStats();
-        teamStats.setTeamId(response.getId());
+        teamStats.setTeamId(teamId);
 
         TeamStatsResponse.OwnRecord ownRecord = response.getOwn_record();
 
@@ -222,18 +263,18 @@ private List<Teams> fetchTeams(Rankings response) {
 
 
 	// API CALL TO FETCH PLAYER DETAILS AND THEIR STATS. THIS API CALL TAKES IN TEAM-ID TO GET DATA
-    public List<PlayerStats> fetchPlayers(String teamId){
-    	String url = "https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/teams/"+teamId+"/statistics.json?api_key=";
+    public List<PlayerStats> fetchPlayers(Teams team){
+    	String url = "https://api.sportradar.com/nba/trial/v8/en/seasons/2024/REG/teams/"+team.getTeamId()+"/statistics.json?api_key=";
         String apiKey = "quoLOuR9M3y7o6xB0b4YHMSEU1zkxYyP1KCDyCqJ";
         String uri = url + apiKey;
         PlayerResponse response = restTemplate.getForObject(uri, PlayerResponse.class);
         System.out.println("in api = "+ response.toString());
-        System.out.println(fetchPlayerDetails(response, teamId));;
-        System.out.println(fetchPlayerStats(response));;
+        System.out.println(fetchPlayerDetails(response, team));;
+        System.out.println(fetchPlayerStats(response, team));;
         return null;
     }
     
-    private List<PlayerStats> fetchPlayerStats(PlayerResponse response) {
+    private List<PlayerStats> fetchPlayerStats(PlayerResponse response, Teams team) {
 
         if (response != null && response.getPlayers() != null) {
             for (PlayerResponse.Player player : response.getPlayers()) {
@@ -241,7 +282,7 @@ private List<Teams> fetchTeams(Rankings response) {
                     // Create a PlayerStats object
                     PlayerStats playerStats = new PlayerStats();
                     // Map data from API response
-                    playerStats.setPlayerId(player.getId());
+                    playerStats.setPlayerId(findTeamPlayerById(player.getId(), team.getPlayers()));
                     playerStats.setThreePointerEff(player.getAverage().getThree_points_made());
                     playerStats.setTwoPointerEff(player.getAverage().getTwo_points_made());
                     playerStats.setEfficieny(player.getAverage().getEfficiency());
@@ -262,7 +303,7 @@ private List<Teams> fetchTeams(Rankings response) {
 	}
 
 
-	private List<TeamPlayers> fetchPlayerDetails(PlayerResponse response, String teamId) {
+	private List<TeamPlayers> fetchPlayerDetails(PlayerResponse response, Teams team) {
     	
     	if (response != null && response.getPlayers() != null) {
             for (PlayerResponse.Player player : response.getPlayers()) {
@@ -270,22 +311,31 @@ private List<Teams> fetchTeams(Rankings response) {
                 TeamPlayers teamPlayer = new TeamPlayers();
 
                 // Map data from API response
-                teamPlayer.setTeamId(teamId); // Use the provided teamId
+                teamPlayer.setTeam(team); // Use the provided teamId
                 teamPlayer.setPlayerId(player.getId());
                 teamPlayer.setFullName(player.getFull_name());
                 teamPlayer.setPosition(player.getPrimary_position());
                 teamPlayer.setJerseyNumber(player.getJersey_number());
-
                 // Add to the list
                 teamPlayers.add(teamPlayer);
             }
+            
+            team.setPlayers(teamPlayers);
         }
 
         // Print or log the teamPlayers list to verify
         System.out.println("Parsed Team Players List: " + teamPlayers);
 
         return teamPlayers;	}
-
+	
+	private TeamPlayers findTeamPlayerById(String playerId, List<TeamPlayers> teamPlayers) {
+	    for (TeamPlayers teamPlayer : teamPlayers) {
+	        if (teamPlayer.getPlayerId().equals(playerId)) {
+	            return teamPlayer;
+	        }
+	    }
+	    return null; // Return null if no matching player found
+	}
 
 	// METHOD USED WITHIN THE API TO PARSE THE GAME SECHEDULE AND TO ONLY RETURN GAMES PLAYER IN NOVEMBER
     private boolean isInNovember(String scheduled) {

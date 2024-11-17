@@ -1,17 +1,27 @@
 package com.cps298.nba.main_entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class TeamPlayers {
 
-	private String teamId;
+	@Id
 	private String playerId;
 	private String fullName;
 	private String position;
 	private int jerseyNumber;
-	public String getTeamId() {
-		return teamId;
+	
+	@ManyToOne
+	@JoinColumn(name = "team", referencedColumnName = "teamId")
+	private Teams team;
+	public Teams getTeam() {
+		return team;
 	}
-	public void setTeamId(String teamId) {
-		this.teamId = teamId;
+	public void setTeam(Teams team) {
+		this.team = team;
 	}
 	public String getPlayerId() {
 		return playerId;
@@ -39,7 +49,7 @@ public class TeamPlayers {
 	}
 	@Override
 	public String toString() {
-		return "TeamPlayers [teamId=" + teamId + ", playerId=" + playerId + ", fullName=" + fullName + ", position="
-				+ position + ", jerseyNumber=" + jerseyNumber + "]";
+		return "TeamPlayers [playerId=" + playerId + ", fullName=" + fullName + ", position=" + position
+				+ ", jerseyNumber=" + jerseyNumber + "TeamId=" + team.getTeamId() + "]";
 	}
 }

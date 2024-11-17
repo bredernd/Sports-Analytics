@@ -21,34 +21,34 @@
 	<property name="suffix" value=".jsp"></property>
 	</bean>
 	
-<!-- 	<bean id="myDataSource" -->
-<!-- 		class="com.mchange.v2.c3p0.ComboPooledDataSource"> -->
-<!-- 	<property name="driverClass" value="com.mysql.cj.jdbc.Driver"></property> -->
-<!-- 	<property name="user" value="hbstudent"></property> -->
-<!-- 	<property name="password" value="hbstudent"></property> -->
-<!-- 	<property name="jdbcUrl" -->
-<!-- 		value="jdbc:mysql://localhost:3306/movies?useSSL=false"> -->
-<!-- 	</property> -->
-<!-- 	<property name="minPoolSize" value="5"></property> -->
-<!-- 	<property name="maxPoolSize" value="30"></property> -->
-<!-- 	<property name="maxIdleTime" value="30000"></property> -->
-<!-- 	</bean> -->
-<!-- 	<bean id="sessionFactory" -->
-<!-- 		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean"> -->
-<!-- 	<property name="dataSource" ref="myDataSource"></property> -->
-<!-- 	<property name="packagesToScan" -->
-<!-- 		value="com.cps298.nba.entity"> -->
-<!-- 	</property> -->
-<!-- 	<property name="hibernateProperties"> -->
-<!-- 	<props> -->
-<!-- 	<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop> -->
-<!-- 	<prop key="hibernate.show_sql">true</prop> -->
-<!-- 	</props> -->
-<!-- 	</property> -->
-<!-- 	</bean> -->
-<!-- 	<bean id="myTransactionalManager" -->
-<!-- 		class="org.springframework.orm.hibernate5.HibernateTransactionManager"> -->
-<!-- 	<property name="sessionFactory" ref="sessionFactory"></property> -->
-<!-- 	</bean> -->
-<!-- 	<tx:annotation-driven transaction-manager="myTransactionalManager" /> -->
+	<bean id="myDataSource"
+		class="com.mchange.v2.c3p0.ComboPooledDataSource">
+	<property name="driverClass" value="com.microsoft.sqlserver.jdbc.SQLServerDriver"></property>
+	<property name="user" value="F24T_DakB"></property>
+	<property name="password" value="$brryD$26"></property>
+	<property name="jdbcUrl"
+		value="jdbc:sqlserver://198.111.176.197;databaseName=F24T_DakB;encrypt=false;trustServerCertificate=true;">
+	</property>
+	<property name="minPoolSize" value="5"></property>
+	<property name="maxPoolSize" value="30"></property>
+	<property name="maxIdleTime" value="30000"></property>
+	</bean>
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+	<property name="dataSource" ref="myDataSource"></property>
+	<property name="packagesToScan"
+		value="com.cps298.nba.main_entity">
+	</property>
+	<property name="hibernateProperties">
+	<props>
+	<prop key="hibernate.dialect">org.hibernate.dialect.SQLServerDialect</prop>
+	<prop key="hibernate.show_sql">true</prop>
+	</props>
+	</property>
+	</bean>
+	<bean id="myTransactionalManager"
+		class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+	<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<tx:annotation-driven transaction-manager="myTransactionalManager" />
 </beans>

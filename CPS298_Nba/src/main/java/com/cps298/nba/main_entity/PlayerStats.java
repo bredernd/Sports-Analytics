@@ -1,18 +1,27 @@
 package com.cps298.nba.main_entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class PlayerStats {
 
-	private String playerId;
+	@Id
+	@ManyToOne
+	@JoinColumn(name="playerId")
+	private TeamPlayers playerId;
 	private double threePointerEff;
 	private double twoPointerEff;
 	private double efficieny;
 	private double assists;
 	private double steals;
 	private double blocks;
-	public String getPlayerId() {
+	public TeamPlayers getPlayerId() {
 		return playerId;
 	}
-	public void setPlayerId(String playerId) {
+	public void setPlayerId(TeamPlayers playerId) {
 		this.playerId = playerId;
 	}
 	public double getThreePointerEff() {
@@ -53,7 +62,7 @@ public class PlayerStats {
 	}
 	@Override
 	public String toString() {
-		return "PlayerStats [playerId=" + playerId + ", threePointerEff=" + threePointerEff + ", twoPointerEff="
+		return "PlayerStats [playerId=" + playerId.getPlayerId() + ", threePointerEff=" + threePointerEff + ", twoPointerEff="
 				+ twoPointerEff + ", efficieny=" + efficieny + ", assists=" + assists + ", steals=" + steals
 				+ ", blocks=" + blocks + "]";
 	}

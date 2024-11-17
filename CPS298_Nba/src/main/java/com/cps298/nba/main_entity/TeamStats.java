@@ -1,8 +1,17 @@
 package com.cps298.nba.main_entity;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class TeamStats {
 
-	private String teamId;
+	@Id
+	@ManyToOne
+	@JoinColumn(name="teamId")
+	private Teams teamId;
 	//THE FOLLOWING ARE TO BE RETRIVED FROM TOTAL OBJECT
     private Double possessions;
     private Double opponent_possessions;
@@ -22,10 +31,10 @@ public class TeamStats {
     private Double assists;
     private Double steals;
     private Double blocks;
-	public String getTeamId() {
+	public Teams getTeamId() {
 		return teamId;
 	}
-	public void setTeamId(String teamId) {
+	public void setTeamId(Teams teamId) {
 		this.teamId = teamId;
 	}
 	public Double getPossessions() {
@@ -126,7 +135,7 @@ public class TeamStats {
 	}
 	@Override
 	public String toString() {
-		return "TeamStats [teamId=" + teamId + ", possessions=" + possessions + ", opponent_possessions="
+		return "TeamStats [teamId=" + teamId.getTeamId() + ", possessions=" + possessions + ", opponent_possessions="
 				+ opponent_possessions + ", offensive_rating=" + offensive_rating + ", defensive_rating="
 				+ defensive_rating + ", net_rating=" + net_rating + ", three_points_made=" + three_points_made
 				+ ", three_points_att=" + three_points_att + ", free_throws_made=" + free_throws_made

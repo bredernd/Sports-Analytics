@@ -7,26 +7,31 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-import com.cps298.nba.main_entity.GameSechedule;
-import com.cps298.nba.main_entity.TeamPlayers;
+import com.cps298.nba.main_entity.TeamRankings;
+import com.cps298.nba.main_entity.Teams;
 import com.cps298.nba.service.ApiServiceImp;
+import com.cps298.nba.service.DaoService;
 
 @Controller
 public class MainController {
 	
 	@Autowired
 	ApiServiceImp api;
+	
+	@Autowired
+	DaoService imp;
+	
 
 	@RequestMapping("/")
 	public String home(Model model) throws InterruptedException {	
-		List<TeamPlayers> response = api.fetchRanking();
+		List<TeamRankings> response = api.fetchRanking();
 		model.addAttribute("response", response);
 		return "home";
 	}
 	
 	@RequestMapping("/calender")
 	public String calender(Model model) {
-		List<GameSechedule> venue = api.gameSechdule();
+		List<Teams> venue = api.gameSechdule();
 		model.addAttribute("venue", venue);
 		return "calender";
 	}

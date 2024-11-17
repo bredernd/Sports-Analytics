@@ -1,16 +1,40 @@
 package com.cps298.nba.main_entity;
 
 
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "GameSchedule")
 public class GameSechedule {
 
+	  @Id
+	  @GeneratedValue(strategy = GenerationType.IDENTITY)
+	  private int game_id;
 	  private String status;
 	  private String scheduled;
 	  private Integer home_points;
 	  private Integer away_points;
 	  private Boolean track_on_court;
+	  @Column(name = "venue_address")
 	  private String venueAddress;
-	  private String home_team_id; 
-	  private String away_team_id;
+	  @ManyToOne
+	  @JoinColumn(name = "home_team_id")
+	  private Teams home_team;
+	  @ManyToOne
+	  @JoinColumn(name = "away_team_id")
+	  private Teams away_team;
+	  
+	  public int getGame_id() {
+		return game_id;
+	}
 
 	public String getScheduled() {
 		return scheduled;
@@ -42,17 +66,17 @@ public class GameSechedule {
 	public void setVenueAddress(String venueAddress) {
 		this.venueAddress = venueAddress;
 	}
-	public String getHome_team_id() {
-		return home_team_id;
+	public Teams getHome_team() {
+		return home_team;
 	}
-	public void setHome_team_id(String home_team_id) {
-		this.home_team_id = home_team_id;
+	public void setHome_team(Teams home_team) {
+		this.home_team = home_team;
 	}
-	public String getAway_team_id() {
-		return away_team_id;
+	public Teams getAway_team() {
+		return away_team;
 	}
-	public void setAway_team_id(String away_team_id) {
-		this.away_team_id = away_team_id;
+	public void setAway_team(Teams away_team) {
+		this.away_team = away_team;
 	}
 	public String getStatus() {
 		return status;
@@ -64,6 +88,6 @@ public class GameSechedule {
 	public String toString() {
 		return "GameSechedule [status=" + status + ", scheduled=" + scheduled + ", home_points=" + home_points
 				+ ", away_points=" + away_points + ", track_on_court=" + track_on_court + ", venueAddress="
-				+ venueAddress + ", home_team_id=" + home_team_id + ", away_team_id=" + away_team_id + "]";
+				+ venueAddress + ", home_team=" + ", away_team=" + "]";
 	}
 }
