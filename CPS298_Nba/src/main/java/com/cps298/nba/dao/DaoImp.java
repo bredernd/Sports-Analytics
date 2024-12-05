@@ -127,7 +127,7 @@ public class DaoImp implements Dao {
 	    @Override
 	    public PlayerStats getPlayerStats(String playerId) {
 	        Session session = sessionFactory.getCurrentSession();
-	        return session.createQuery("FROM PlayerStats WHERE player.playerId = :playerId", PlayerStats.class)
+	        return session.createQuery("FROM PlayerStats ps WHERE ps.playerId.playerId = :playerId", PlayerStats.class)
 	                      .setParameter("playerId", playerId)
 	                      .uniqueResult();
 	    }
@@ -146,6 +146,12 @@ public class DaoImp implements Dao {
 	    public List<GameSechedule> getAllGameSchedule() {
 	        Session session = sessionFactory.getCurrentSession();
 	        return session.createQuery("FROM GameSechedule", GameSechedule.class).getResultList();
+	    }
+	    
+	    @Override
+	    public GameSechedule getGameSechedule(int gameId) {
+	        Session session = sessionFactory.getCurrentSession();
+	        return session.get(GameSechedule.class, gameId); // Retrieve a game by ID
 	    }
 	
 	

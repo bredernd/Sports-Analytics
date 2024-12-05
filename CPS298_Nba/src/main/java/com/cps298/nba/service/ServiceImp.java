@@ -1,11 +1,18 @@
 package com.cps298.nba.service;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.cps298.nba.dao.Dao;
+import com.cps298.nba.main_entity.GamePrediction;
 import com.cps298.nba.main_entity.GameSechedule;
 import com.cps298.nba.main_entity.PlayerStats;
 import com.cps298.nba.main_entity.TeamPlayers;
@@ -21,6 +28,18 @@ public class ServiceImp implements DaoService {
     @Autowired
     private Dao teamDAO;
 
+    
+    
+    public PlayerStats getPlayerStats(TeamPlayers player) {
+        if (player == null || player.getPlayerId() == null) {
+            // If player or player ID is null, return null
+            return null;
+        }
+
+        // Query the repository to find PlayerStats by player ID
+        return teamDAO.getPlayerStats(player.getPlayerId());
+    }
+    
     @Override
     @Transactional
     public void saveTeams(List<Teams> teams) {
@@ -160,9 +179,225 @@ public class ServiceImp implements DaoService {
 	@Override
 	@Transactional
 	public List<GameSechedule> getAllGameSchedule() {
-		 return teamDAO.getAllGameSchedule();
+	    List<GameSechedule> gameSchedules = teamDAO.getAllGameSchedule(); // Get all game schedules
+	    SimpleDateFormat sdfInput = new SimpleDateFormat("yyyy-MM-dd");  // Input format of 'scheduled' field
+	    SimpleDateFormat sdfOutput = new SimpleDateFormat("dd MMMM, yyyy"); // Desired format '06 January, 2024'
+
+	    // Iterate through each GameSechedule object to format the scheduled date
+	    for (GameSechedule gameSchedule : gameSchedules) {
+	        try {
+	            // Parse the 'scheduled' date
+	            Date scheduledDate = sdfInput.parse(gameSchedule.getScheduled());
+	            // Format the date to the desired format
+	            gameSchedule.setScheduled(sdfOutput.format(scheduledDate));
+	        } catch (Exception e) {
+	            e.printStackTrace(); // Handle potential parsing errors
+	        }
+	    }
+
+	    return gameSchedules; // Return the formatted game schedules
 	}
-    
-    
+	
+	@Override
+	@Transactional
+	public GameSechedule getGameSchedule(int gameId) {
+		 return teamDAO.getGameSechedule(gameId);
+	}
+	
+	@Override
+	@Transactional
+	public GamePrediction getPrediction(int gameId) {
+		GameSechedule gameSchedule = teamDAO.getGameSechedule(gameId);
+	    Teams homeTeam = gameSchedule.getHome_team();
+	    Teams awayTeam = gameSchedule.getAway_team();
+
+	    TeamStats homeTeamStats = getTeamStats(homeTeam.getTeamId());
+	    TeamStats awayTeamStats = getTeamStats(awayTeam.getTeamId());
+	    
+//	    List<TeamPlayers> players = getTeamPlayers(homeTeam.getTeamId());
+//	    for(TeamPlayers player : players) {
+//	    	System.out.println(teamDAO.getPlayerStats(player.getPlayerId()));
+//	    	//System.out.println(player.getPlayerId());
+//	    }
+
+	    Map<TeamPlayers, PlayerStats> homeTopPlayers = getTeamPlayers(homeTeam.getTeamId()).stream()
+		        .collect(Collectors.toMap(
+		            player -> player, // Map key: Player
+		            player -> getPlayerStats(player.getPlayerId()) // Map value: PlayerStats
+		        ))
+		        .entrySet().stream()
+		        .filter(entry -> entry.getValue() != null) // Exclude players without stats
+		        .sorted((e1, e2) -> Double.compare(
+		            e2.getValue().getEfficieny(), // Sort by PlayerStats efficiency in descending order
+		            e1.getValue().getEfficieny()
+		        ))
+		        .limit(3) // Take top 3
+		        .collect(Collectors.toMap(
+		            Map.Entry::getKey, // Collect the top 3 players and their stats
+		            Map.Entry::getValue,
+		            (e1, e2) -> e1, // Handle potential conflicts (not expected here)
+		            LinkedHashMap::new // Maintain insertion order for the sorted entries
+		        ));
+	    
+	    System.out.println("//////////////////////////////////////////////////////////away");
+
+
+	    // Get top 3 players with their stats for the away team
+	    Map<TeamPlayers, PlayerStats> awayTopPlayers = getTeamPlayers(awayTeam.getTeamId()).stream()
+	        .collect(Collectors.toMap(
+	            player -> player, // Map key: Player
+	            player -> getPlayerStats(player.getPlayerId()) // Map value: PlayerStats
+	        ))
+	        .entrySet().stream()
+	        .filter(entry -> entry.getValue() != null) // Exclude players without stats
+	        .sorted((e1, e2) -> Double.compare(
+	            e2.getValue().getEfficieny(), // Sort by PlayerStats efficiency in descending order
+	            e1.getValue().getEfficieny()
+	        ))
+	        .limit(3) // Take top 3
+	        .collect(Collectors.toMap(
+	            Map.Entry::getKey, // Collect the top 3 players and their stats
+	            Map.Entry::getValue,
+	            (e1, e2) -> e1, // Handle potential conflicts (not expected here)
+	            LinkedHashMap::new // Maintain insertion order for the sorted entries
+	        ));
+
+	    System.out.println("************************************************************************1");
+
+
+	    // Calculate player contributions for each team
+	    List<PlayerStats> homePlayers = new ArrayList<>(homeTopPlayers.values());
+	    List<PlayerStats> awayPlayers = new ArrayList<>(awayTopPlayers.values());
+	    double homePlayerContribution = calculatePlayerContribution(homePlayers);
+	    double awayPlayerContribution = calculatePlayerContribution(awayPlayers);
+	    
+	    System.out.println("1111111111111111111111111111111111111111111111111111111111111111111");
+
+	    // Calculate team scores
+	    double homeTeamScore = calculateTeamScore(homeTeamStats, homePlayerContribution, true);
+	    double awayTeamScore = calculateTeamScore(awayTeamStats, awayPlayerContribution, false);
+
+	    // Win probabilities
+	    double totalScore = homeTeamScore + awayTeamScore;
+	    double homeWinProbability = (homeTeamScore / totalScore) * 100;
+	    double awayWinProbability = (awayTeamScore / totalScore) * 100;
+
+
+	    // Populate GamePrediction object
+	    GamePrediction prediction = new GamePrediction();
+	    
+	    // Game rating
+	    int gameRating = calculateGameRating(homeTeamStats, awayTeamStats, homePlayers, awayPlayers, homeWinProbability, awayWinProbability);
+
+	    if (gameRating >= 8) {
+	    	prediction.setMessage("You should definetly watch this game");
+	    } else if (gameRating >=5) {
+	    	prediction.setMessage("you may watch this game");
+	    }
+	    else if (gameRating >=3) {
+	    	prediction.setMessage("you are better off not watching this game");
+	    }
+	    else {
+	    	prediction.setMessage("Don't watch this game");
+	    }
+	    
+	    prediction.setHomeTeam(homeTeam);
+	    prediction.setAwayTeam(awayTeam);
+	    prediction.setHomeTeamStats(homeTeamStats);
+	    prediction.setAwayTeamStats(awayTeamStats);
+	    prediction.setHomeTopPlayers(homeTopPlayers);
+	    prediction.setAwayTopPlayers(awayTopPlayers);
+	    prediction.setHomeWinProbability(Math.round(homeWinProbability * 100.0) / 100.0);
+	    prediction.setAwayWinProbability(Math.round(awayWinProbability * 100.0) / 100.0);
+	    prediction.setGameRating(gameRating);
+	    
+	    System.out.println("*********************************************done");
+
+	    return prediction;
+	}
+
+	private double calculatePlayerContribution(List<PlayerStats> players) {
+	    double w1 = 0.5, w2 = 0.3, w3 = 0.2; // Example weights
+	    return players.stream()
+	        .mapToDouble(player -> w1 * player.getThreePointerEff() + w2 * player.getTwoPointerEff() +
+	            w3 * (player.getAssists() + player.getSteals() + player.getBlocks()))
+	        .sum();
+	}
+
+	private double calculateTeamScore(TeamStats stats, double playerContribution, boolean isHome) {
+	    double w1 = 0.4, w2 = 0.4, w3 = 0.2; // Example weights
+	    double homeAdvantage = isHome ? 10 : 0; // Example home advantage boost
+	    return w1 * stats.getNet_rating() +
+	           w2 * (stats.getOffensive_rating() + stats.getDefensive_rating()) +
+	           w3 * playerContribution + homeAdvantage;
+	}
+
+	private int calculateGameRating(TeamStats homeStats, TeamStats awayStats, List<PlayerStats> homePlayers, List<PlayerStats> awayPlayers, double homeWinProbability, double awayWinProbability) {
+	    // Calculate absolute difference in Net Rating (handling negative values correctly)
+	    double rankDifference = Math.abs(homeStats.getNet_rating() - awayStats.getNet_rating());
+	    double netRatingInterest = 0;
+
+	    // Assign interest based on net rating difference
+	    if (rankDifference <= 2) {
+	        netRatingInterest = 10; // Very close net ratings, highly interesting
+	    } else if (rankDifference <= 5) {
+	        netRatingInterest = 8;  // Close net ratings, moderately interesting
+	    } else if (rankDifference <= 10) {
+	        netRatingInterest = 6;  // Somewhat close net ratings
+	    } else {
+	        netRatingInterest = 4;  // Large net rating difference, low interest
+	    }
+
+	    // Conference and Division Rank differences (scaled for interest)
+	    int homeConferenceRank = teamDAO.getTeamRankings(homeStats.getTeamId().getTeamId()).getConferenceRank();
+	    int awayConferenceRank = teamDAO.getTeamRankings(awayStats.getTeamId().getTeamId()).getConferenceRank();
+	    int homeDivisionRank = teamDAO.getTeamRankings(homeStats.getTeamId().getTeamId()).getDivisionRank();
+	    int awayDivisionRank = teamDAO.getTeamRankings(awayStats.getTeamId().getTeamId()).getDivisionRank();
+
+	    double rankingInterest = 0;
+
+	    // Conference Rank difference
+	    int conferenceRankDifference = Math.abs(homeConferenceRank - awayConferenceRank);
+	    if (conferenceRankDifference <= 2) {
+	        rankingInterest += 5; // Same conference rank, more interest
+	    } else if (conferenceRankDifference <= 4) {
+	        rankingInterest += 3; // Close conference rank, somewhat interesting
+	    } else {
+	        rankingInterest += 1; // Far conference rank, less interesting
+	    }
+
+	    // Division Rank difference
+	    int divisionRankDifference = Math.abs(homeDivisionRank - awayDivisionRank);
+	    if (divisionRankDifference == 0) {
+	        rankingInterest += 5; // Same division rank, very interesting
+	    } else if (divisionRankDifference == 1) {
+	        rankingInterest += 3; // Close division rank, moderately interesting
+	    } else {
+	        rankingInterest += 1; // Large division rank difference, less interesting
+	    }
+
+	    // Calculate Star Power (sum of top 3 players' efficiency, but normalize it)
+	    double starPower = homePlayers.stream().mapToDouble(PlayerStats::getEfficieny).sum() +
+	                       awayPlayers.stream().mapToDouble(PlayerStats::getEfficieny).sum();
+
+	    // Normalize efficiency, assuming top players contribute most
+	    double normalizedStarPower = starPower / 100; // Arbitrary normalization factor for balance
+	    
+	    double winDifference = Math.abs(homeWinProbability - awayWinProbability);
+	    double interest = 0;
+	    if (winDifference <= 20.0) {
+	    	 interest = 2.0;
+	    }
+
+	    // Final Interest Calculation (weight factors can be adjusted)
+	    double finalInterest = (netRatingInterest * 0.3) + (rankingInterest * 0.4) + (normalizedStarPower * 0.3) + interest;
+
+	    // Ensure the final interest value does not exceed 10
+	    finalInterest = Math.min(finalInterest, 10);
+
+	    // Return as an integer between 1-10
+	    return (int) Math.round(finalInterest);
+	}
+
 	
 }

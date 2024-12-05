@@ -1,5 +1,7 @@
 package com.cps298.nba.service;
 
+
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,8 +75,8 @@ public class ApiServiceImp implements ApiService {
          //service.saveTeamPlayers(teamPlayers);
         // service.savePlayerStats(playerStatistics);
          
-         gameSechdule();
-         service.saveGameSchedule(sechedule);
+        // gameSechdule();
+        // service.saveGameSchedule(sechedule);
          
     	 
     	 return null;
@@ -160,6 +162,8 @@ public List<Teams> gameSechdule() {
         // Create a map for quick lookup of Teams by their IDs
         Map<String, Teams> teamIdToTeamsMap = teamData.stream()
                 .collect(Collectors.toMap(Teams::getTeamId, team -> team));
+        
+        System.out.println(teamIdToTeamsMap);
 
         // Filter games scheduled for November and map them to GameSechedule objects
         sechedule = response.getGames().stream()
@@ -198,6 +202,9 @@ private GameSechedule mapToGameSechedule(GameResponse.Game game, Map<String, Tea
  // Map home and away teams using the team ID map
  if (game.getHome() != null) {
 	 Teams homeTeam = teamIdToTeamsMap.getOrDefault(game.getHome().getId(), null);
+	 if (homeTeam == null) {
+		 System.out.println(game);
+	 }
      gameSchedule.setHome_team(homeTeam);
      homeTeam.getHomeGames().add(gameSchedule);
  }
@@ -343,7 +350,7 @@ private GameSechedule mapToGameSechedule(GameResponse.Game game, Map<String, Tea
             // Extract and parse the date from the scheduled field
             LocalDate gameDate = LocalDate.parse(scheduled.substring(0, 10)); // "2024-11-10T23:30:00Z" -> "2024-11-10"
             LocalDate startOfNovember = LocalDate.of(LocalDate.now().getYear(), 11, 1);
-            LocalDate endOfNovember = LocalDate.of(LocalDate.now().getYear(), 11, 30);
+            LocalDate endOfNovember = LocalDate.of(LocalDate.now().getYear(), 12, 9);
 
             return !gameDate.isBefore(startOfNovember) && !gameDate.isAfter(endOfNovember);
         } catch (Exception e) {

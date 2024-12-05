@@ -28,4 +28,5 @@ public interface Dao {
 	 public PlayerStats getPlayerStats(String playerId);
 	 public void saveGameSchedule(List<GameSechedule> schedule);
 	 public List<GameSechedule> getAllGameSchedule();
+	 public GameSechedule getGameSechedule(int gameId);
 }

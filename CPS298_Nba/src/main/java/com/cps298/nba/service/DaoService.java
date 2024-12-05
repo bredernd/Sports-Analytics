@@ -2,6 +2,7 @@ package com.cps298.nba.service;
 
 import java.util.List;
 
+import com.cps298.nba.main_entity.GamePrediction;
 import com.cps298.nba.main_entity.GameSechedule;
 import com.cps298.nba.main_entity.PlayerStats;
 import com.cps298.nba.main_entity.TeamPlayers;
@@ -55,6 +56,12 @@ public interface DaoService {
 
 	    // Get all game schedule
 	    List<GameSechedule> getAllGameSchedule();
+	    
+	    // Get a game sechedule
+	    GameSechedule getGameSchedule(int gameId);
+	    
+	    public GamePrediction getPrediction(int gameId);
+
 	
 
 }
