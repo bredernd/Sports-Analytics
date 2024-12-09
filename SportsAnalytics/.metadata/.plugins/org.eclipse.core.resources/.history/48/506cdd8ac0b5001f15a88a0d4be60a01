@@ -1,0 +1,138 @@
+@charset "ISO-8859-1";
+
+/* General Reset */
+body, h1, h2, h3, h5, p, ul, li, div, a {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+}
+
+/* Container */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Header */
+h1 {
+    font-size: 2.5rem;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+
+/* Main Content */
+.main-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Cards Container */
+.cards-container {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 20px;
+    width: 100%;
+}
+
+/* Card Styling */
+.card {
+    background: #ffffff;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-width: 800px;
+    width: 100%;
+}
+
+.card-body {
+    padding: 20px;
+}
+
+/* Card Titles and Text */
+.card-title {
+    font-size: 1.5rem;
+    color: #34495e;
+    margin-bottom: 10px;
+}
+
+.card-body p {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #555;
+}
+
+.home-vs-away h2 {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.8rem;
+    color: #2980b9;
+}
+
+/* Team Players */
+.team-players {
+    list-style: none;
+    margin-top: 10px;
+    margin-bottom: 20px;
+}
+
+.team-players li {
+    background: #ecf0f1;
+    padding: 10px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+}
+
+/* Navigation Buttons */
+.nav-buttons {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.nav-buttons a {
+    text-decoration: none;
+    padding: 10px 20px;
+    background: #3498db;
+    color: #ffffff;
+    border-radius: 5px;
+    transition: background 0.3s ease;
+}
+
+.nav-buttons a:hover {
+    background: #2980b9;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card {
+        max-width: 100%;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    .card-title {
+        font-size: 1.2rem;
+    }
+
+    .home-vs-away h2 {
+        font-size: 1.5rem;
+    }
+}
