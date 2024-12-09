@@ -1,6 +1,0 @@
-INDEX VERSION 1.4+C:\Users\twofr\OneDrive\Desktop\TwoThirdsNBA\.metadata\.plugins\org.eclipse.wst.jsdt.core\indexes
-1967767801.index
-38413054.index
-517839125.index
-1024882515.index
-3432579443.index
